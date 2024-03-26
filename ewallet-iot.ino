@@ -26,7 +26,7 @@ int BUILTIN_LED = 2;
 int BUTTON = 0;
 
 int curr_button_state = HIGH;
-int saldo = 50000;
+int saldo = 150000;
 int nominal_transaksi = 20000;
 
 int freq = 1;
