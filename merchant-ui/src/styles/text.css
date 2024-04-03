@@ -51,7 +51,6 @@ td {
   font-style: normal;
   font-size: 16px;
   line-height: normal;
-  letter-spacing: 3.5px;
 }
 
 ::-webkit-input-placeholder { /* Edge */
@@ -59,7 +58,6 @@ td {
   font-style: normal;
   font-size: 16px;
   line-height: normal;
-  letter-spacing: 3.5px;
   text-transform: uppercase;
 }
 

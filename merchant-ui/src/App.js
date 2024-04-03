@@ -9,7 +9,8 @@ function App() {
   // Params
   const mqttHost = "test.mosquitto.org";
   const mqttPort = 8081;
-  const mqttTopic = "13520050-if4051-out/#";
+  const paymentTopic = "user/payment/#";
+  const topUpTopic = "user/top-up/#";
 
   const topUpOptions = [
     { label: "Rp50.000", value: 50000 },
@@ -23,20 +24,29 @@ function App() {
   const client = useRef(null);
   const [status, setStatus] = useState("Disconnected");
   const [currTransaction, setCurrTransaction] = useState(null);
+  const [currUser, setCurrUser] = useState("");
   const [transactions, setTransactions] = useState([]);
+  const [totals, setTotals] = useState({});
 
   useEffect(() => {
     client.current = mqtt.connect(mqttUrl);
     client.current.on("connect", () => {
       console.log("connected");
       setStatus("Connected");
-      client.current.subscribe(mqttTopic);
+      client.current.subscribe(paymentTopic);
+      client.current.subscribe(topUpTopic);
     });
     client.current.on("message", (topic, message) => {
       console.log(topic, message.toString());
       const topicParts = topic.split("/");
       const parsed = message.toString().split(";");
-      setCurrTransaction({user: topicParts[1], msg: parsed});
+      if (topicParts[1] === "payment") {
+        setCurrTransaction({user: topicParts[topicParts.length-1], msg: parsed, type: "Pembayaran"});
+        setCurrUser(topicParts[topicParts.length-1]);
+      } else if (topicParts[1] === "top-up") {
+        setCurrTransaction({user: topicParts[topicParts.length-1], msg: parsed, type: "Top-up"});
+        setCurrUser(topicParts[topicParts.length-1]);
+      }
     });
     client.current.on("reconnect", () => {
       console.log("reconnect");
@@ -47,7 +57,7 @@ function App() {
       client.current.end();
     };
   }
-  , [mqttUrl, mqttTopic]);
+  , [mqttUrl, paymentTopic, topUpTopic]);
 
   useEffect(() => {
     if (!currTransaction) return;
@@ -76,7 +86,7 @@ function App() {
         { currTransaction ? 
           <div className="w-full h-full py-8 px-16">
             {/* status */}
-            <p>{currTransaction.msg[1] === "failed" ? "PEMBAYARAN GAGAL." : "PEMBAYARAN SEBESAR " + currTransaction.msg[2]  + " BERHASIL."}</p>
+            <p className="uppercase">{currTransaction.msg[1] === "failed" ? (`${currTransaction.type} sebesar `  + currTransaction.msg[2] + " gagal." + (currTransaction.type === "Pembayaran" ? " Saldo tidak mencukupi." : "")) : (`${currTransaction.type} sebesar ` + currTransaction.msg[2]  + " berhasil.")}</p>
             {/* saldo */}
             <p>Sisa saldo Anda: {currTransaction.msg[0]}</p>
           </div>
@@ -89,18 +99,21 @@ function App() {
       </section>
       {/* TOP UP MENU */}
       <section className="mt-12">
-        <h2>Top Up</h2>
+        <h2>Top Up ({ currUser == "" ? "No user detected. Scan card to top up." : currUser })</h2>
         <div className="flex gap-8 mt-2">
           {topUpOptions.map((option, index) => (
-            <button key={index} className="w-full py-4 mt-4 border border-zinc-600 hover:bg-zinc-200 hover:text-zinc-950" onClick={() => {
-              client.current.publish("13520050-if4051-in", `${option.value}`);
+            <button key={index} className="disabled:text-zinc-500 w-full py-4 mt-4 border border-zinc-600 enabled:hover:bg-zinc-200 enabled:hover:text-zinc-950" disabled={currUser === ""} onClick={() => {
+              client.current.publish(`merchant/top-up/${currUser}`, `${option.value}`); console.log(`merchant/top-up/${currUser}`, `${option.value}`);
             }}>{option.label}</button>
           ))}
         </div>
       </section>
       {/* TRANSACTION HISTORY */}
       <section className="mt-12">
-        <h2>Transaction History</h2>
+        <div className="flex justify-between">
+          <h2>Transaction History</h2>
+          <button className="underline" onClick={() => setTransactions([])}>Clear history</button>
+        </div>
         <div className="flex flex-col w-full mt-2">
           {transactions.map((transaction, index) => (
             <Transaction key={index} transaction={transaction} />

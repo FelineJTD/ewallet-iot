@@ -4,7 +4,7 @@ function Transaction({ transaction }) {
       <p>{ transaction.msg[1] === "success" ? "ฅ^ •ﻌ• ^ฅ" : "/ᐠ - ˕ -マ" }</p>
       <div>
         <h3 className={`${transaction.msg[1] !== "success" && "line-through text-zinc-400"} text-xl`}>{ transaction.user }</h3>
-        <p className={`${transaction.msg[1] !== "success" && "line-through text-zinc-400"}`}>{ transaction.msg[1] === "success" ? "Pembayaran berhasil" : "Pembayaran gagal"}</p>
+        <p className={`${transaction.msg[1] !== "success" && "line-through text-zinc-400"}`}>{ transaction.msg[1] === "success" ? `${transaction.type} berhasil` : `${transaction.type} gagal`}</p>
       </div>
       <p className={`${transaction.msg[1] !== "success" && "line-through text-zinc-400"} text-right text-2xl`}>{ transaction.msg[2] }</p>
     </div>
