@@ -12,6 +12,7 @@ function App() {
   const mqttPort = 8081;
   const paymentTopic = "user/payment/#";
   const topUpTopic = "user/top-up/#";
+  const checkTopic = "user/check/#";
 
   const topUpOptions = [
     { label: "Rp 20.000", value: 20000 },
@@ -35,6 +36,7 @@ function App() {
       setStatus("Connected");
       client.current.subscribe(paymentTopic);
       client.current.subscribe(topUpTopic);
+      client.current.subscribe(checkTopic);
     });
     client.current.on("message", (topic, message) => {
       console.log(topic, message.toString());

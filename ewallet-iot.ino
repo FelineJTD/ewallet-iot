@@ -27,8 +27,10 @@ int BUILTIN_LED = 2;
 int BUTTON = 0;
 
 int curr_button_state = HIGH;
-int saldo = 50000;
+int saldo = 150000;
 int nominal_transaksi = 20000;
+unsigned long lastClick = 0;
+bool just_checked = false;
 
 int freq = 1;
 
@@ -83,9 +85,6 @@ void reconnect() {
     // Attempt to connect
     if (client.connect(clientId.c_str())) {
       Serial.println("connected");
-      // Once connected, publish an announcement...
-      // client.publish("13520050-if4051-out/person-1", "initial connection");
-      // ... and resubscribe
       client.subscribe("merchant/top-up/person-1");
     } else {
       Serial.print("failed, rc=");
@@ -95,6 +94,16 @@ void reconnect() {
       delay(5000);
     }
   }
+}
+
+void check() {
+  snprintf (msg, MSG_BUFFER_SIZE, "%ld", saldo);
+  client.publish("user/check/person-1", msg);
+  // LED
+  int onTime = 1000;
+  digitalWrite(BUILTIN_LED, HIGH);
+  delay(onTime);
+  digitalWrite(BUILTIN_LED, LOW);
 }
 
 // Pay
@@ -144,17 +153,26 @@ void setup() {
 }
 
 void loop() {
-
   if (!client.connected()) {
     reconnect();
   }
   client.loop();
 
   int button_state = digitalRead(BUTTON);
-  if (curr_button_state == HIGH && button_state == LOW) {
-    pay(nominal_transaksi);    
+  unsigned long now = millis();
+  if (curr_button_state == LOW && button_state == LOW && (now - lastClick > 2000)) {
+    check();
     curr_button_state = LOW;
+    lastClick = now;
+    just_checked = true;
+  } else if (just_checked == false && curr_button_state == LOW && button_state == HIGH) {
+    pay(nominal_transaksi);    
+    curr_button_state = HIGH;
   } else if (button_state == HIGH) {
     curr_button_state = HIGH;
+    lastClick = now;
+    just_checked = false;
+  } else if (button_state == LOW) {
+    curr_button_state = LOW;
   }
 }
