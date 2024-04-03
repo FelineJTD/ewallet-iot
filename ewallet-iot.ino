@@ -26,7 +26,7 @@ int BUILTIN_LED = 2;
 int BUTTON = 0;
 
 int curr_button_state = HIGH;
-int saldo = 30000;
+int saldo = 50000;
 int nominal_transaksi = 20000;
 
 int freq = 1;
@@ -77,7 +77,7 @@ void reconnect() {
     if (client.connect(clientId.c_str())) {
       Serial.println("connected");
       // Once connected, publish an announcement...
-      client.publish("13520050-if4051-out", "hello world");
+      client.publish("13520050-if4051-out", "initial connection");
       // ... and resubscribe
       client.subscribe("13520050-if4051-in");
     } else {
@@ -98,7 +98,8 @@ void pay(int nominal) {
     // LED
     int blinkTime = 5000;
     int frek = 100;
-    client.publish("13520050-if4051-out", "SALDO TIDAK MENCUKUPI.");
+    snprintf (msg, MSG_BUFFER_SIZE, "%ld;failed;0", saldo);
+    client.publish("13520050-if4051-out", msg);
     for (int i=0; i<=blinkTime; i+=frek) {
       digitalWrite(BUILTIN_LED, HIGH);
       delay(frek / 2);
@@ -108,8 +109,8 @@ void pay(int nominal) {
   } else {
     saldo -= nominal;
     Serial.println(saldo);
-    // saldoStr = str(saldo)
-    client.publish("13520050-if4051-out", "Berhasil");
+    snprintf (msg, MSG_BUFFER_SIZE, "%ld;success;%ld", saldo, nominal_transaksi);
+    client.publish("13520050-if4051-out", msg);
     // LED
     int onTime = 5000;
     digitalWrite(BUILTIN_LED, HIGH);
@@ -128,20 +129,10 @@ void setup() {
 }
 
 void loop() {
-
   if (!client.connected()) {
     reconnect();
   }
   client.loop();
-
-  // unsigned long now = millis();
-  // if (now - lastMsg > 2000) {
-  //   lastMsg = now;
-  //   snprintf (msg, MSG_BUFFER_SIZE, "13520050: %ld Hz", freq);
-  //   Serial.print("Publish message: ");
-  //   Serial.println(msg);
-  //   client.publish("13520050-if4051-out", msg);
-  // }
 
   int button_state = digitalRead(BUTTON);
   if (curr_button_state == HIGH && button_state == LOW) {
