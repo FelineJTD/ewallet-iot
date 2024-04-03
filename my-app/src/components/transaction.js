@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import logo from './logo.svg';
 import './App.css';
 import mqtt from "precompiled-mqtt";
 
-function App() {
+function Transaction({ transaction }) {
   // Params
   const mqttHost = "test.mosquitto.org";
   const mqttPort = 8081;
@@ -11,7 +11,6 @@ function App() {
 
   const mqttUrl = `mqtts://${mqttHost}:${mqttPort}`;
   const client = useRef(null);
-  const status = useState("Disconnected");
 
   useEffect(() => {
     client.current = mqtt.connect(mqttUrl);
@@ -33,10 +32,23 @@ function App() {
   , []);
 
   return (
-    <main className="bg-zinc-800 min-h-screen w-full">
-      <h1 className="">Merchant-UI</h1>
-    </main>
+    <div className="App">
+      <header className="App-header">
+        <img src={logo} className="App-logo" alt="logo" />
+        <p>
+          Edit <code>src/App.js</code> and save to reload.
+        </p>
+        <a
+          className="App-link"
+          href="https://reactjs.org"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Learn React
+        </a>
+      </header>
+    </div>
   );
 }
 
-export default App;
+export default Transaction;

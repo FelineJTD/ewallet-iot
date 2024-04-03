@@ -40,6 +40,9 @@ devDependencies:
   react-app-rewired:
     specifier: ^2.2.1
     version: 2.2.1(react-scripts@5.0.1)
+  tailwindcss:
+    specifier: ^3.4.3
+    version: 3.4.3
 
 packages:
 
