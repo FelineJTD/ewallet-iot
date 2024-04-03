@@ -1,6 +1,7 @@
 import logo from './logo.svg';
 import './App.css';
-import Connector from "react-mqtt-client/dist/Connector";
+import { Connector, subscribe } from "react-mqtt-client";
+// import Connector from "react-mqtt-client/dist/Connector";
 
 function App() {
   return (
