@@ -4,6 +4,7 @@ import mqtt from "precompiled-mqtt";
 import Transaction from "./components/transaction";
 import Clock from "./components/clock";
 import AsciiAnimation from "./components/ascii-animation";
+import rupiahFormat from "./utils/rupiahFormat";
 
 function App() {
   // Params
@@ -13,11 +14,11 @@ function App() {
   const topUpTopic = "user/top-up/#";
 
   const topUpOptions = [
-    { label: "Rp50.000", value: 50000 },
-    { label: "Rp100.000", value: 100000 },
-    { label: "Rp200.000", value: 200000 },
-    { label: "Rp500.000", value: 500000 },
-    { label: "Rp1.000.000", value: 1000000 },
+    { label: "Rp 50.000", value: 50000 },
+    { label: "Rp 100.000", value: 100000 },
+    { label: "Rp 200.000", value: 200000 },
+    { label: "Rp 500.000", value: 500000 },
+    { label: "Rp 1.000.000", value: 1000000 },
   ];
 
   const mqttUrl = `mqtts://${mqttHost}:${mqttPort}`;
@@ -26,7 +27,7 @@ function App() {
   const [currTransaction, setCurrTransaction] = useState(null);
   const [currUser, setCurrUser] = useState("");
   const [transactions, setTransactions] = useState([]);
-  const [totals, setTotals] = useState({});
+  // const [totals, setTotals] = useState({});
 
   useEffect(() => {
     client.current = mqtt.connect(mqttUrl);
@@ -40,13 +41,8 @@ function App() {
       console.log(topic, message.toString());
       const topicParts = topic.split("/");
       const parsed = message.toString().split(";");
-      if (topicParts[1] === "payment") {
-        setCurrTransaction({user: topicParts[topicParts.length-1], msg: parsed, type: "Pembayaran"});
-        setCurrUser(topicParts[topicParts.length-1]);
-      } else if (topicParts[1] === "top-up") {
-        setCurrTransaction({user: topicParts[topicParts.length-1], msg: parsed, type: "Top-up"});
-        setCurrUser(topicParts[topicParts.length-1]);
-      }
+      setCurrTransaction({user: topicParts[topicParts.length-1], balance: rupiahFormat(parseInt(parsed[0])), status: parsed[1], nominal: rupiahFormat(parseInt(parsed[2])), type: topicParts[1] === "payment" ? "Pembayaran" : "Top-up"});
+      setCurrUser(topicParts[topicParts.length-1]);
     });
     client.current.on("reconnect", () => {
       console.log("reconnect");
@@ -86,9 +82,9 @@ function App() {
         { currTransaction ? 
           <div className="w-full h-full py-8 px-16">
             {/* status */}
-            <p className="uppercase">{currTransaction.msg[1] === "failed" ? (`${currTransaction.type} sebesar `  + currTransaction.msg[2] + " gagal." + (currTransaction.type === "Pembayaran" ? " Saldo tidak mencukupi." : "")) : (`${currTransaction.type} sebesar ` + currTransaction.msg[2]  + " berhasil.")}</p>
+            <p className="uppercase">{currTransaction.status === "failed" ? (`${currTransaction.type} sebesar `  + currTransaction.nominal + " gagal." + (currTransaction.type === "Pembayaran" ? " Saldo tidak mencukupi." : "")) : (`${currTransaction.type} sebesar ` + currTransaction.nominal  + " berhasil.")}</p>
             {/* saldo */}
-            <p>Sisa saldo Anda: {currTransaction.msg[0]}</p>
+            <p>Sisa saldo Anda: {currTransaction.balance}</p>
           </div>
         :
           <div className="w-full h-full flex flex-col items-center justify-center">
@@ -99,7 +95,7 @@ function App() {
       </section>
       {/* TOP UP MENU */}
       <section className="mt-12">
-        <h2>Top Up ({ currUser == "" ? "No user detected. Scan card to top up." : currUser })</h2>
+        <h2>Top Up ({ currUser === "" ? "No user detected. Scan card to top up." : currUser })</h2>
         <div className="flex gap-8 mt-2">
           {topUpOptions.map((option, index) => (
             <button key={index} className="disabled:text-zinc-500 w-full py-4 mt-4 border border-zinc-600 enabled:hover:bg-zinc-200 enabled:hover:text-zinc-950" disabled={currUser === ""} onClick={() => {
