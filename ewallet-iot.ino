@@ -13,6 +13,7 @@ const char* password = "gakpakepassword";
 // const char* ssid = "There's no wifi again >:(";
 // const char* password = "wiiifiii";
 const char* mqtt_server = "test.mosquitto.org";
+const char* user_id = "person-1";
 
 // Client setup
 WiFiClient espClient;
@@ -60,10 +61,16 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
+  char nominal_top_up[10] = "";
   for (int i = 0; i < length; i++) {
     Serial.print((char)payload[i]);
+    nominal_top_up[i] = (char)payload[i];
   }
+  int nominal_top_up_int = atoi(nominal_top_up);
   Serial.println();
+
+  Serial.println(nominal_top_up_int);
+  top_up(nominal_top_up_int);
 }
 
 void reconnect() {
@@ -77,9 +84,9 @@ void reconnect() {
     if (client.connect(clientId.c_str())) {
       Serial.println("connected");
       // Once connected, publish an announcement...
-      client.publish("13520050-if4051-out", "initial connection");
+      // client.publish("13520050-if4051-out/person-1", "initial connection");
       // ... and resubscribe
-      client.subscribe("13520050-if4051-in");
+      client.subscribe("merchant/top-up/person-1");
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -98,8 +105,8 @@ void pay(int nominal) {
     // LED
     int blinkTime = 5000;
     int frek = 100;
-    snprintf (msg, MSG_BUFFER_SIZE, "%ld;failed;0", saldo);
-    client.publish("13520050-if4051-out", msg);
+    snprintf (msg, MSG_BUFFER_SIZE, "%ld;failed;%ld", saldo, nominal_transaksi);
+    client.publish("user/payment/person-1", msg);
     for (int i=0; i<=blinkTime; i+=frek) {
       digitalWrite(BUILTIN_LED, HIGH);
       delay(frek / 2);
@@ -110,13 +117,21 @@ void pay(int nominal) {
     saldo -= nominal;
     Serial.println(saldo);
     snprintf (msg, MSG_BUFFER_SIZE, "%ld;success;%ld", saldo, nominal_transaksi);
-    client.publish("13520050-if4051-out", msg);
+    client.publish("user/payment/person-1", msg);
     // LED
     int onTime = 5000;
     digitalWrite(BUILTIN_LED, HIGH);
     delay(onTime);
     digitalWrite(BUILTIN_LED, LOW);
   }
+}
+
+void top_up(int nominal) {
+  Serial.println("Top up");
+  saldo += nominal;
+  Serial.println(saldo);
+  snprintf (msg, MSG_BUFFER_SIZE, "%ld;success;%ld", saldo, nominal);
+  client.publish("user/top-up/person-1", msg);
 }
 
 void setup() {
@@ -129,6 +144,7 @@ void setup() {
 }
 
 void loop() {
+
   if (!client.connected()) {
     reconnect();
   }
