@@ -13,6 +13,7 @@ function App() {
   const mqttUrl = `mqtts://${mqttHost}:${mqttPort}`;
   const client = useRef(null);
   const [status, setStatus] = useState("Disconnected");
+  const [currTransaction, setCurrTransaction] = useState(null);
   const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
@@ -24,13 +25,11 @@ function App() {
     });
     client.current.on("message", (topic, message) => {
       console.log(topic, message.toString());
-      setTransactions((prevTransactions) => {
-        return [...prevTransactions, message];
-      });
+      setCurrTransaction(message.toString());
     });
     client.current.on("reconnect", () => {
       console.log("reconnect");
-      setStatus("Reconnecting...");
+      setStatus("Reconnecting");
     });
 
     return () => {
@@ -38,6 +37,18 @@ function App() {
     };
   }
   , []);
+
+  useEffect(() => {
+    if (!currTransaction) return;
+
+    setTimeout(() => {
+      setTransactions((prevTransactions) => {
+        return [currTransaction, ...prevTransactions];
+      });
+      setCurrTransaction(null);
+    }, 5000);
+
+  }, [currTransaction]);
 
   return (
     <main className="bg-zinc-800 text-zinc-50 min-h-screen w-full py-24 px-24 xl:px-[20vw]">
@@ -51,13 +62,16 @@ function App() {
       </header>
       {/* INCOMING TRANSACTION/STATUS WINDOW */}
       <div>
-
+        <p>{currTransaction}</p>
       </div>
       {/* TRANSACTION HISTORY */}
-      <div>
-        {transactions.map((transaction, index) => {
-          <Transaction key={index} transaction={transaction} />
-        })}
+      <div className="text-white flex flex-col w-full h-full">
+        <h2>Transaction History</h2>
+        {/* <div className="flex flex-col w-full h-full"> */}
+          {transactions.map((transaction, index) => (
+            <Transaction key={index} transaction={transaction} />
+          ))}
+        {/* </div> */}
       </div>
     </main>
   );
