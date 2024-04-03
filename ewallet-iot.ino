@@ -8,11 +8,11 @@
 #include <PubSubClient.h>
 
 // WiFi params
-// const char* ssid = "Indah 231";
-// const char* password = "gakpakepassword";
-const char* ssid = "Christael Art Coffee";
-const char* password = "12348765";
-const char* mqtt_server = "broker.mqtt-dashboard.com";
+const char* ssid = "Indah 231";
+const char* password = "gakpakepassword";
+// const char* ssid = "There's no wifi again >:(";
+// const char* password = "wiiifiii";
+const char* mqtt_server = "test.mosquitto.org";
 
 // Client setup
 WiFiClient espClient;
@@ -26,7 +26,7 @@ int BUILTIN_LED = 2;
 int BUTTON = 0;
 
 int curr_button_state = HIGH;
-int saldo = 150000;
+int saldo = 30000;
 int nominal_transaksi = 20000;
 
 int freq = 1;
@@ -98,6 +98,7 @@ void pay(int nominal) {
     // LED
     int blinkTime = 5000;
     int frek = 100;
+    client.publish("13520050-if4051-out", "SALDO TIDAK MENCUKUPI.");
     for (int i=0; i<=blinkTime; i+=frek) {
       digitalWrite(BUILTIN_LED, HIGH);
       delay(frek / 2);
@@ -107,6 +108,8 @@ void pay(int nominal) {
   } else {
     saldo -= nominal;
     Serial.println(saldo);
+    // saldoStr = str(saldo)
+    client.publish("13520050-if4051-out", "Berhasil");
     // LED
     int onTime = 5000;
     digitalWrite(BUILTIN_LED, HIGH);
@@ -131,7 +134,7 @@ void loop() {
   }
   client.loop();
 
-  unsigned long now = millis();
+  // unsigned long now = millis();
   // if (now - lastMsg > 2000) {
   //   lastMsg = now;
   //   snprintf (msg, MSG_BUFFER_SIZE, "13520050: %ld Hz", freq);
