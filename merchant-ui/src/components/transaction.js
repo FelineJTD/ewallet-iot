@@ -1,6 +1,6 @@
 function Transaction({ transaction }) {
   return (
-    <div className="w-full text-zinc-50 grid grid-cols-[8rem_1fr_1fr] items-center py-4 border-b border-zinc-600">
+    <div className="w-full text-zinc-50 grid grid-cols-[8rem_1fr_1fr] items-center py-6 border-b border-zinc-600">
       <p>{ transaction.msg[1] === "success" ? "ฅ^ •ﻌ• ^ฅ" : "/ᐠ - ˕ -マ" }</p>
       <div>
         <h3 className={`${transaction.msg[1] !== "success" && "line-through text-zinc-400"} text-xl`}>{ transaction.user }</h3>
