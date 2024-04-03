@@ -3,6 +3,7 @@ import './styles/text.css';
 import mqtt from "precompiled-mqtt";
 import Transaction from "./components/transaction";
 import Clock from "./components/clock";
+import AsciiAnimation from "./components/ascii-animation";
 
 function App() {
   // Params
@@ -61,8 +62,11 @@ function App() {
         </div>
       </header>
       {/* INCOMING TRANSACTION/STATUS WINDOW */}
-      <div>
-        <p>{currTransaction}</p>
+      <div className="w-full h-48 border border-zinc-600 mt-8">
+        { currTransaction ? 
+          <p>{currTransaction}</p> :
+          <AsciiAnimation />
+        }
       </div>
       {/* TRANSACTION HISTORY */}
       <div className="text-white flex flex-col w-full h-full">
