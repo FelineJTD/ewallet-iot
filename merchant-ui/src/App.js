@@ -9,7 +9,7 @@ function App() {
   // Params
   const mqttHost = "test.mosquitto.org";
   const mqttPort = 8081;
-  const mqttTopic = "13520050-if4051-out";
+  const mqttTopic = "13520050-if4051-out/#";
 
   const mqttUrl = `mqtts://${mqttHost}:${mqttPort}`;
   const client = useRef(null);
@@ -26,8 +26,9 @@ function App() {
     });
     client.current.on("message", (topic, message) => {
       console.log(topic, message.toString());
+      const topicParts = topic.split("/");
       const parsed = message.toString().split(";");
-      setCurrTransaction(parsed);
+      setCurrTransaction({user: topicParts[1], msg: parsed});
     });
     client.current.on("reconnect", () => {
       console.log("reconnect");
@@ -67,9 +68,9 @@ function App() {
         { currTransaction ? 
           <div className="w-full h-full py-8 px-16">
             {/* status */}
-            <p>{currTransaction[1] === "failed" ? "PEMBAYARAN GAGAL." : "PEMBAYARAN SEBESAR " + currTransaction[2]  + " BERHASIL."}</p>
+            <p>{currTransaction.msg[1] === "failed" ? "PEMBAYARAN GAGAL." : "PEMBAYARAN SEBESAR " + currTransaction.msg[2]  + " BERHASIL."}</p>
             {/* saldo */}
-            <p>Sisa saldo Anda: {currTransaction[0]}</p>
+            <p>Sisa saldo Anda: {currTransaction.msg[0]}</p>
           </div>
         :
           <div className="w-full h-full flex flex-col items-center justify-center">
