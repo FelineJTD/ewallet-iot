@@ -42,7 +42,11 @@ function App() {
       console.log(topic, message.toString());
       const topicParts = topic.split("/");
       const parsed = message.toString().split(";");
-      setCurrTransaction({user: topicParts[topicParts.length-1], balance: rupiahFormat(parseInt(parsed[0])), status: parsed[1], nominal: rupiahFormat(parseInt(parsed[2])), type: topicParts[1] === "payment" ? "Pembayaran" : "Top-up"});
+      if (topicParts[1] === "check") {
+        setCurrTransaction({user: topicParts[topicParts.length-1], balance: rupiahFormat(parseInt(parsed[0])), type: "Check"});
+      } else {
+        setCurrTransaction({user: topicParts[topicParts.length-1], balance: rupiahFormat(parseInt(parsed[0])), status: parsed[1], nominal: rupiahFormat(parseInt(parsed[2])), type: topicParts[1] === "payment" ? "Pembayaran" : "Top-up"});
+      }
       setCurrUser(topicParts[topicParts.length-1]);
     });
     client.current.on("reconnect", () => {
@@ -58,11 +62,14 @@ function App() {
 
   useEffect(() => {
     if (!currTransaction) return;
+    console.log(currTransaction);
 
     setTimeout(() => {
-      setTransactions((prevTransactions) => {
-        return [currTransaction, ...prevTransactions];
-      });
+      if (currTransaction.type !== "Check") {
+        setTransactions((prevTransactions) => {
+          return [currTransaction, ...prevTransactions];
+        });
+      }
       setCurrTransaction(null);
     }, 5000);
 
@@ -81,11 +88,17 @@ function App() {
       {/* INCOMING TRANSACTION/STATUS WINDOW */}
       <section className="w-full h-48 border border-zinc-600 mt-8">
         { currTransaction ? 
-          <div className="w-full h-full py-8 px-16">
+          <div className="w-full h-full p-8">
             {/* status */}
-            <p className="uppercase">{currTransaction.status === "failed" ? (`${currTransaction.type} sebesar `  + currTransaction.nominal + " gagal." + (currTransaction.type === "Pembayaran" ? " Saldo tidak mencukupi." : "")) : (`${currTransaction.type} sebesar ` + currTransaction.nominal  + " berhasil.")}</p>
+            { currTransaction.type === "Check" ? 
+              <p className="uppercase">INFORMASI KARTU</p>
+            : 
+              <p className="uppercase">{currTransaction.status === "failed" ? (`${currTransaction.type} sebesar `  + currTransaction.nominal + " gagal." + (currTransaction.type === "Pembayaran" ? " Saldo tidak mencukupi." : "")) : (`${currTransaction.type} sebesar ` + currTransaction.nominal  + " berhasil.")}</p>
+            }
             {/* saldo */}
             <p>Sisa saldo Anda: {currTransaction.balance}</p>
+            {/* user */}
+            <p>Kartu: {currTransaction.user}</p>
           </div>
         :
           <div className="w-full h-full flex flex-col items-center justify-center">
