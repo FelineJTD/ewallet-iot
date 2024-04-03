@@ -5,6 +5,7 @@ import Transaction from "./components/transaction";
 import Clock from "./components/clock";
 import AsciiAnimation from "./components/ascii-animation";
 import rupiahFormat from "./utils/rupiahFormat";
+import AsciiArt from "./components/ascii-art";
 
 function App() {
   // Params
@@ -124,11 +125,18 @@ function App() {
           <h2>Transaction History</h2>
           <button className="underline" onClick={() => setTransactions([])}>Clear history</button>
         </div>
-        <div className="flex flex-col w-full mt-2">
-          {transactions.map((transaction, index) => (
-            <Transaction key={index} transaction={transaction} />
-          ))}
-        </div>
+        { transactions.length === 0 ? 
+          <div className="w-full flex flex-col items-center justify-center text-zinc-400 mt-12">
+            <AsciiArt />
+            <p>No transaction history.</p>
+          </div>
+        :
+          <div className="flex flex-col w-full mt-2">
+            {transactions.map((transaction, index) => (
+              <Transaction key={index} transaction={transaction} />
+            ))}
+          </div>
+        }
       </section>
     </main>
   );
